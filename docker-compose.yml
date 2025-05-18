@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: db
+    ports:
+      - "3306:3306"
+    networks:
+      - net
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  web:
+    build: ./web
+    container_name: web
+    expose:
+      - "3000"
+    depends_on:
+      - mysql
+    networks:
+      - net
+  
+  apache:
+    build: ./apache-reverse-proxy
+    container_name: apache
+    ports:
+      - "8080:80"
+    depends_on:
+      - web
+    networks:
+      - net
+
+networks:
+  net:
+    name: net
+
+volumes:
+  db_data:
